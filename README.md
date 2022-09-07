@@ -1,0 +1,1 @@
+VDotBot: converts VDOT to race results and vise versa, Cooper (distance or time) and Balke (distance) test results to VDOT.
