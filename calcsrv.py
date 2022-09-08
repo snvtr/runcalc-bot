@@ -3,21 +3,33 @@
 import math
 from config import DISTANCES
 
-'''
-vdot json server gets either:
-- distance+time or
-- VDOT as input
-and returns:
-- a json with VDOT for a given distance+time
-- a list of times for a bunch of distances for a given VDOT
-'''
+#vdot json server gets either:
+#- distance+time or
+#- VDOT as input
+#and returns:
+#- a json with VDOT for a given distance+time
+#- a list of times for a bunch of distances for a given VDOT
 
 def get_pace(dist, res):
-    ''' returns pace for a given dist/res without leading hours: Mi:SS/km '''
+    ''' 
+    returns pace for a given dist/res without leading hours: Mi:SS/km 
+    >>> get_pace(1000, 5)
+    '05:00'
+    >>> get_pace(20000, 80)
+    '04:00'
+    '''
     return time_to_str(res/(dist/1000))[3:]
 
 def get_vdot(raw_vdot):
-    ''' checks if vdot value is valid '''
+    ''' 
+    checks if vdot value is valid 
+    >>> get_vdot('54.321')
+    54.32
+    >>> get_vdot('54,321')
+    54.32
+    >>> get_vdot('xyz')
+    
+    '''
     try:
         vdot = round(float(raw_vdot), 2)
     except:
@@ -25,14 +37,28 @@ def get_vdot(raw_vdot):
     return vdot
 
 def get_dst(raw_dst):
-    ''' checks if distance from a message is valid '''
+    '''
+    checks if distance from a message is valid
+    >>> get_dst('1000m') 
+    '1000'
+    >>> get_dst('12345K')
+
+    '''
     for d in DISTANCES.keys():
         if raw_dst.lower() in DISTANCES[d]:
             return DISTANCES[d][1]
     return None
 
 def get_res(raw_res):
-    ''' checks if result time from a message is valid '''
+    '''
+    checks if result time from a message is valid
+    >>> get_res('05:11')
+    '00:05:11'
+    >>> get_res('02:43:56')
+    '02:43:56'
+    >>> get_res('44:33:66')
+
+    '''
     items = raw_res.strip().split(':')
     if len(items) < 2 or len(items) > 3:
         return None
@@ -53,7 +79,15 @@ def get_res(raw_res):
     return None
 
 def balke(distance):
-    ''' Balke 15 min running test '''
+    '''
+    Balke 15 min running test
+    >>> balke(3000)
+    '44.82'
+    >>> balke(6666)
+    'distance out of range'
+    >>> balke(99)
+    'distance out of range'
+    '''
     if (distance < 100):
         return 'distance out of range'
     if (distance > 6500):
@@ -62,7 +96,15 @@ def balke(distance):
     return '{:2.2f}'.format(vo2max)
 
 def cooper(distance):
-    ''' cooper test from distance '''
+    '''
+    cooper test from distance
+    >>> cooper(2400)
+    '42.37'
+    >>> cooper(99)
+    'distance out of range'
+    >>> cooper(5555)
+    'distance out of range'
+    '''
     if (distance < 100):
         return 'distance out of range'
     if (distance > 5000):
@@ -71,7 +113,15 @@ def cooper(distance):
     return '{:2.2f}'.format(vo2max)
 
 def cooper_from_time(str_time):
-    ''' cooper test from time '''
+    '''
+    cooper test from time
+    >>> cooper_from_time('00:12:00')
+    '43.75'
+    >>> cooper_from_time('00:08:00')
+    'time out of range'
+    >>> cooper_from_time('00:31:24')
+    'time out of range'
+    '''
     time_t = str_to_time(str_time)
     if time_t < 9 or time_t > 30:
         return 'time out of range'
@@ -99,7 +149,11 @@ def cooper_indian_mod(distance):
     return '{:2.2f}'.format(vo2max)
 
 def daniels(distance, str_time):
-    ''' the main function, converts distance+time to VDOT '''
+    '''
+    the main function, converts distance+time to VDOT
+    >>> daniels(3000, '00:12:00')
+    47.85
+    '''
     duration = float(str_to_time(str_time))
     velocity = float(distance) / duration
     return round((-4.60 + 0.182258 * velocity + 0.000104 * math.pow(velocity,2)) / (0.8 + 0.1894393 * math.exp(-0.012778 * duration) + 0.2989558 * math.exp(-0.1932605 * duration)),2)
@@ -191,3 +245,7 @@ def build_cooper_t(str_time):
 def build_balke(distance):
     ''' formatted reply '''
     return ''.join(['VO2max (Balke test based on distance): ',balke(int(distance)),])
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
