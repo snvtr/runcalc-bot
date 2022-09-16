@@ -1,10 +1,6 @@
-from math import modf
-
-class AgeOutOfLimits(Exception):
-    pass
-
-class GenderDoesNotExist(Exception):
-    pass
+from math   import modf
+from config import DISTANCES
+from get    import get_dst, get_dst_name
 
 class Grades(object):
 
@@ -32,7 +28,7 @@ class Grades(object):
         inits all the dictionaries with grades
         '''
         for grade_file in self.grade_files:
-            distance = grade_file[9:]
+            distance = get_dst(grade_file[9:])
             self.grades[distance] = {}
             self.grades[distance]['F'] = {}
             self.grades[distance]['M'] = {}
@@ -49,25 +45,6 @@ class Grades(object):
                     age    = int(ln[2:4].rstrip())
                     coeff  = float(ln[5:])
                     self.grades[distance][gender][age] = coeff
-
-    def __check_age(self, age):
-        '''
-        checks if age in the limits
-        '''
-        if int(age) < self.__MIN_AGE or int(age) > self.__MAX_AGE:
-             return False
-        else:
-             return True
-
-    def __check_gender(self, gender):
-        '''
-        checks if gender is correct
-        '''
-        if gender.upper() not in ['M', 'F']:
-             return False
-        else:
-             return gender.upper()
-
 
     def __str2time(self, time_str):
         '''
@@ -97,11 +74,6 @@ class Grades(object):
         ''' 
         gets distance+gender+age and returns formatted time string 
         '''
-        if not self.__check_age(age):
-            raise AgeOutOfLimits
-        gender = self.__check_gender(gender)
-        if not gender:
-            raise GenderDoesNotExist
         return self.__time2str(self.__get_dist_time(distance, gender, age))
 
     def graded_percent(self, distance, gender, age, time_str):
@@ -109,11 +81,6 @@ class Grades(object):
         returns percentage of the Best Result for given age from distance+time+age 
         '''
         # 1) get overall record time
-        if not self.__check_age(age):
-            raise AgeOutOfLimits
-        gender = self.__check_gender(gender)
-        if not gender:
-            raise GenderDoesNotExist
         record_t = self.__str2time(self.records[distance][gender])
         # 2) convert overall record time to age-graded record time
         graded_record_t = record_t/self.grades[distance][gender][age]
@@ -121,10 +88,41 @@ class Grades(object):
         graded_diff = graded_record_t/self.__str2time(time_str)
         return str(round(graded_diff*100)) + '%'
 
+    def graded_distances(self, graded_percentage, age, gender):
+        ''' 
+        returns a list of probable results for a set of distances from age graded percentage
+        '''
+        #ret_text = ''
+        #for d in self.grades.keys():
+        #    ret_text += '{}: placeholder\n'.format(get_dst_name(d))
+        #return ret_text
+        ret_text = ''
+        for distance in self.records.keys():
+             for d in DISTANCES.keys():
+                 if distance in DISTANCES[d]:
+                     pretty_distance = DISTANCES[d][0]
+                     break
+             record_t        = self.__str2time(self.records[distance][gender])
+             graded_record_t = record_t/self.grades[distance][gender][age]
+             age_graded_t    = graded_record_t/(graded_percentage/100)
+             age_graded_str  = self.__time2str(age_graded_t)
+             ret_text += '{}: {}\n'.format(pretty_distance, age_graded_str)
+        return ret_text
+
+
+def build_agegraded(dist, res, age, gender):
+    g = Grades()
+    return g.graded_percent(dist, gender, age, res)
+
+def build_agedist(percent, age, gender):
+    g = Grades()
+    return g.graded_distances(percent, age, gender)
+
 
 if __name__ == '__main__':
     g = Grades()
     print(g.graded_result('10k', 'M', 5))
     print(g.graded_result('42k', 'F', 90))
     print(g.graded_percent('10k', 'M', 50, '00:50:00'))
+    print(g.graded_distances('59%', 50, 'F'))
     

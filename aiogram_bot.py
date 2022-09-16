@@ -13,6 +13,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 
 from config  import TOKEN, MESSAGES, DISTANCES
+from get     import *
 from calcsrv import *
 from grades  import *
 
@@ -51,6 +52,39 @@ async def process_start_command(message: types.Message):
         await message.reply('race(): badly formed arguments')
     else:
         await message.reply(build_vdot(vdot))
+
+@dp.message_handler(commands=['agegraded'])
+async def process_start_command(message: types.Message):
+    ''' returns age graded percentage of the best time for a given age '''
+    argument = message.get_args()
+    arguments = argument.rstrip().split(' ')
+    if len(arguments) < 4:
+        await message.reply('agegraded(): not enough arguments')
+        return
+    dist   = get_dst(arguments[0]) 
+    res    = get_res(arguments[1])
+    age    = get_age(arguments[2])
+    gender = get_gender(arguments[3])
+    if dist is None or res is None or age is None or gender is None:
+        await message.reply('agegraded(): badly formed arguments')
+    else:
+        await message.reply(build_agegraded(dist, res, age, gender))
+
+@dp.message_handler(commands=['agedist'])
+async def process_start_command(message: types.Message):
+    ''' returns age graded percentage of the best time for a given age '''
+    argument = message.get_args()
+    arguments = argument.rstrip().split(' ')
+    if len(arguments) < 3:
+        await message.reply('agedist(): not enough arguments')
+        return
+    percent = get_pct(arguments[0]) 
+    age     = get_age(arguments[1])
+    gender  = get_gender(arguments[2])
+    if percent is None or age is None or gender is None:
+        await message.reply('agedist(): badly formed arguments')
+    else:
+        await message.reply(build_agedist(percent, age, gender))
 
 @dp.message_handler(commands=['coopert'])
 async def process_start_command(message: types.Message):
@@ -115,6 +149,18 @@ async def process_help_command(message: types.Message):
 @dp.message_handler(commands=['helpvdot'])
 async def process_help_command(message: types.Message):
     await message.reply(MESSAGES['helpvdot'])
+
+@dp.message_handler(commands=['helpage'])
+async def process_help_command(message: types.Message):
+    await message.reply(MESSAGES['helpage'])
+
+@dp.message_handler(commands=['helppercentage'])
+async def process_help_command(message: types.Message):
+    await message.reply(MESSAGES['helppercentage'])
+
+@dp.message_handler(commands=['helpgender'])
+async def process_help_command(message: types.Message):
+    await message.reply(MESSAGES['helpgender'])
 
 @dp.message_handler()
 async def echo_message(msg: types.Message):
