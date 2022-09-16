@@ -12,8 +12,9 @@ from aiogram.utils.helper import Helper, HelperMode, ListItem
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 
-from config import TOKEN, MESSAGES, DISTANCES
+from config  import TOKEN, MESSAGES, DISTANCES
 from calcsrv import *
+from grades  import *
 
 logging.basicConfig(format=u'%(filename)s [ln:%(lineno)+3s]#%(levelname)+8s [%(asctime)s]  %(message)s',
                     level=logging.INFO)
