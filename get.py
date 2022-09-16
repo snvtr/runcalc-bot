@@ -42,8 +42,8 @@ def get_dst(raw_dst):
 def get_dst_name(raw_dst):
     '''
     returns distance user-friendly name
-    >>> get_dst('1000m') 
-    '1000'
+    >>> get_dst('1000') 
+    '1000 m'
     >>> get_dst('12345K')
 
     '''

@@ -2,6 +2,7 @@
 
 import math
 from config import DISTANCES
+from get import get_pace
 
 #vdot json server gets either:
 #- distance+time or
