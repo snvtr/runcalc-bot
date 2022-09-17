@@ -14,6 +14,7 @@ from aiogram.contrib.middlewares.logging import LoggingMiddleware
 
 from config  import TOKEN, MESSAGES, DISTANCES
 import math
+from pprint import pprint
 
 logging.basicConfig(format=u'%(filename)s [ln:%(lineno)+3s]#%(levelname)+8s [%(asctime)s]  %(message)s',
                     level=logging.INFO)
@@ -413,13 +414,13 @@ def reverse(distance, VDOT):
         derivative = get_derivative (float(distance), float(time), float(VDOT))
     return round(time, 2)
 
-def time_to_str(time):
+def time_to_str(time_t):
     '''
     >>> time_to_str(123.45)
     02:03:27
     '''
-    hours = time // 60
-    secs, mins  = math.modf(time - hours*60)
+    hours = time_t // 60
+    secs, mins  = math.modf(time_t - hours*60)
     secs = round(secs*60)
     return '{:02d}:{:02d}:{:02d}'.format(int(hours), int(mins), int(secs))
 
@@ -457,123 +458,103 @@ def build_balke(distance):
     ''' formatted reply '''
     return ''.join(['VO2max (Balke test based on distance): ',balke(int(distance)),])
 
-class Grades(object):
-
-    __MIN_AGE = 5
-    __MAX_AGE = 99
-
-    grade_files = [
-             'AgeGrade.1mi',
-             'AgeGrade.5k',
-             'AgeGrade.8k',
-             'AgeGrade.10k',
-             'AgeGrade.12k',
-             'AgeGrade.15k',
-             'AgeGrade.20k',
-             'AgeGrade.hm',
-             'AgeGrade.30k',
-             'AgeGrade.42k'
+grade_files = [
+             'AgeGrade.1609',
+             'AgeGrade.5000',
+             'AgeGrade.8000',
+             'AgeGrade.10000',
+             'AgeGrade.12000',
+             'AgeGrade.15000',
+             'AgeGrade.20000',
+             'AgeGrade.21097',
+             'AgeGrade.30000',
+             'AgeGrade.42195'
              ]
 
-    grades  = {}
-    records = {}
+grades  = {}
+records = {}
 
-    def __init__(self):
-        '''
-        inits all the dictionaries with grades
-        '''
-        for grade_file in self.grade_files:
-            distance = get_dst(grade_file[9:])
-            self.grades[distance] = {}
-            self.grades[distance]['F'] = {}
-            self.grades[distance]['M'] = {}
-            self.records[distance] = {}
-            with open('./AgeGrades/'+grade_file, 'r') as f:
-                for ln in f:
-                    if ln.find(':') >= 0:
-                        items = ln.rstrip().split('  ')
-                        gender   = items[0][0]
-                        record_t = items[1]
-                        self.records[distance][gender] = record_t
-                        continue
-                    gender = ln[0]
-                    age    = int(ln[2:4].rstrip())
-                    coeff  = float(ln[5:])
-                    self.grades[distance][gender][age] = coeff
+def load_grade_files():
+    '''
+    inits all the dictionaries with grades
+    '''
+    for grade_file in grade_files:
+        distance = get_dst(grade_file[9:])
+        print('load_grade_files():', grade_file, distance)
 
-    def __str2time(self, time_str):
-        '''
-        converts string to decimal minutes
-        '''
-        items = time_str.rstrip().split(':')
-        return float(items[0])*60 + float(items[1]) + float(items[2])/60
+        grades[distance] = {}
+        grades[distance]['F'] = {}
+        grades[distance]['M'] = {}
+        records[distance] = {}
+        with open('./AgeGrades/'+grade_file, 'r') as f:
+            for ln in f:
+                if ln.find(':') >= 0:
+                    items = ln.rstrip().split('  ')
+                    gender   = items[0][0]
+                    record_t = items[1]
+                    records[distance][gender] = record_t
+                    continue
+                gender = ln[0]
+                age    = int(ln[2:4].rstrip())
+                coeff  = float(ln[5:])
+                grades[distance][gender][age] = coeff
+    for key in records.keys():
+        print('load_grade_files():', key)                
 
-    def __time2str(self, time_t):
-        '''
-        converts decimal minutes to formatted time string
-        '''
-        hours = time_t // 60
-        secs, mins  = math.modf(time_t - hours*60)
-        secs = round(secs*60)
-        return '{:02d}:{:02d}:{:02d}'.format(int(hours), int(mins), int(secs))
 
-    def __get_dist_time(self, distance, gender, age):
-        '''
-        returns graded time in decimal minutes for distance + gender + age
-        '''
-        time_t = self.__str2time(self.records[distance][gender])
-        graded_t = time_t/self.grades[distance][gender][age]
-        return graded_t  
+def get_dist_time(distance, gender, age):
+    '''
+    returns graded time in decimal minutes for distance + gender + age
+    '''
+    time_t = str_to_time(records[distance][gender])
+    graded_t = time_t/grades[distance][gender][age]
+    return graded_t  
 
-    def graded_result(self, distance, gender, age):
-        ''' 
-        gets distance+gender+age and returns formatted time string 
-        '''
-        return self.__time2str(self.__get_dist_time(distance, gender, age))
+def graded_result(distance, gender, age):
+    ''' 
+    gets distance+gender+age and returns formatted time string 
+    '''
+    return time_to_str(get_dist_time(distance, gender, age))
 
-    def graded_percent(self, distance, gender, age, time_str):
-        ''' 
-        returns percentage of the Best Result for given age from distance+time+age 
-        '''
-        # 1) get overall record time
-        record_t = self.__str2time(self.records[distance][gender])
-        # 2) convert overall record time to age-graded record time
-        graded_record_t = record_t/self.grades[distance][gender][age]
-        # 3) get diff between result and graded record
-        graded_diff = graded_record_t/self.__str2time(time_str)
-        return str(round(graded_diff*100)) + '%'
+def graded_percent(distance, gender, age, time_str):
+    ''' 
+    returns percentage of the Best Result for given age from distance+time+age 
+    '''
+    # 1) get overall record time
+    record_t = str_to_time(records[distance][gender])
+    # 2) convert overall record time to age-graded record time
+    graded_record_t = record_t/grades[distance][gender][age]
+    # 3) get diff between result and graded record
+    graded_diff = graded_record_t/str_to_time(time_str)
+    return str(round(graded_diff*100)) + '%'
 
-    def graded_distances(self, graded_percentage, age, gender):
-        ''' 
-        returns a list of probable results for a set of distances from age graded percentage
-        '''
-        #ret_text = ''
-        #for d in self.grades.keys():
-        #    ret_text += '{}: placeholder\n'.format(get_dst_name(d))
-        #return ret_text
-        ret_text = ''
-        for distance in self.records.keys():
-             for d in DISTANCES.keys():
-                 if distance in DISTANCES[d]:
-                     pretty_distance = DISTANCES[d][0]
-                     break
-             record_t        = self.__str2time(self.records[distance][gender])
-             graded_record_t = record_t/self.grades[distance][gender][age]
-             age_graded_t    = graded_record_t/(graded_percentage/100)
-             age_graded_str  = self.__time2str(age_graded_t)
-             ret_text += '{}: {}\n'.format(pretty_distance, age_graded_str)
-        return ret_text
+def graded_distances(graded_percentage, age, gender):
+    ''' 
+    returns a list of probable results for a set of distances from age graded percentage
+    '''
+    ret_text = ''
+    for distance in records.keys():
+         print('graded_distances():', distance)        
+         for d in DISTANCES.keys():
+             if distance in DISTANCES[d]:
+                 pretty_distance = DISTANCES[d][0]
+                 break
+         record_t        = str_to_time(records[distance][gender])
+         graded_record_t = record_t/grades[distance][gender][age]
+         age_graded_t    = graded_record_t/(graded_percentage/100)
+         age_graded_str  = time_to_str(age_graded_t)
+         ret_text += '{}: {}\n'.format(pretty_distance, age_graded_str)
+    return ret_text
 
 
 def build_agegraded(dist, res, age, gender):
-    g = Grades()
-    return g.graded_percent(dist, gender, age, res)
+    return graded_percent(dist, gender, age, res)
 
 def build_agedist(percent, age, gender):
-    g = Grades()
-    return g.graded_distances(percent, age, gender)
+    return graded_distances(percent, age, gender)
 
 ### __main__ ###
 
 if __name__ == '__main__':
+    load_grade_files()
     executor.start_polling(dp)
