@@ -12,7 +12,7 @@ from aiogram.utils.helper import Helper, HelperMode, ListItem
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 
-from config  import TOKEN, MESSAGES, DISTANCES
+from config  import *
 import math
 from pprint import pprint
 
@@ -458,30 +458,12 @@ def build_balke(distance):
     ''' formatted reply '''
     return ''.join(['VO2max (Balke test based on distance): ',balke(int(distance)),])
 
-grade_files = [
-             'AgeGrade.1609',
-             'AgeGrade.5000',
-             'AgeGrade.8000',
-             'AgeGrade.10000',
-             'AgeGrade.12000',
-             'AgeGrade.15000',
-             'AgeGrade.20000',
-             'AgeGrade.21097',
-             'AgeGrade.30000',
-             'AgeGrade.42195'
-             ]
-
-grades  = {}
-records = {}
-
 def load_grade_files():
     '''
     inits all the dictionaries with grades
     '''
     for grade_file in grade_files:
         distance = get_dst(grade_file[9:])
-        print('load_grade_files():', grade_file, distance)
-
         grades[distance] = {}
         grades[distance]['F'] = {}
         grades[distance]['M'] = {}
@@ -498,8 +480,8 @@ def load_grade_files():
                 age    = int(ln[2:4].rstrip())
                 coeff  = float(ln[5:])
                 grades[distance][gender][age] = coeff
-    for key in records.keys():
-        print('load_grade_files():', key)                
+    #for key in records.keys():
+    #    print('load_grade_files():', key)                
 
 
 def get_dist_time(distance, gender, age):

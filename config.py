@@ -81,3 +81,19 @@ DISTANCES = {          # the zero element carries the name:
             '30000':   ['30 Km', '30000', '30000m', '30k'],
             '42195':   ['Marathon', '42195' ,'42195m', '42k', 'm']
             }
+
+grade_files = [
+             'AgeGrade.1609',
+             'AgeGrade.5000',
+             'AgeGrade.8000',
+             'AgeGrade.10000',
+             'AgeGrade.12000',
+             'AgeGrade.15000',
+             'AgeGrade.20000',
+             'AgeGrade.21097',
+             'AgeGrade.30000',
+             'AgeGrade.42195'
+             ]
+
+grades  = {}
+records = {}
