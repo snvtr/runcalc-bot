@@ -4,11 +4,11 @@ After=multi-user.target
 Wants=multi-user.target
 
 [Service]
-User=kptdh
+User={{ UserName }}
 Environment=
-EnvironmentFile=/home/kptdh/runcalc-bot/.env
-ExecStart=/home/kptdh/runcalc-bot/aiogram_bot.py
-WorkingDirectory=/home/kptdh/runcalc-bot
+EnvironmentFile=/home/{{ UserName }}/runcalc-bot/.env
+ExecStart=/home/{{ UserName }}/runcalc-bot/aiogram_bot.py
+WorkingDirectory=/home/{{ UserName }}/runcalc-bot
 Restart=always
 RestartSec=10
 TimeoutStopSec=90
