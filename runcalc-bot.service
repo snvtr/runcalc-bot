@@ -1,11 +1,10 @@
 [Unit]
-Description=Runcalcbot
+Description=Runcalc-bot
 After=multi-user.target
 Wants=multi-user.target
 
 [Service]
 User={{ UserName }}
-Environment=
 EnvironmentFile=/home/{{ UserName }}/runcalc-bot.env
 ExecStart=/home/{{ UserName }}/runcalc-bot/aiogram_bot.py
 WorkingDirectory=/home/{{ UserName }}/runcalc-bot
