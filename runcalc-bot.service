@@ -6,7 +6,7 @@ Wants=multi-user.target
 [Service]
 User={{ UserName }}
 Environment=
-EnvironmentFile=/home/{{ UserName }}/runcalc-bot/.env
+EnvironmentFile=/home/{{ UserName }}/runcalc-bot.env
 ExecStart=/home/{{ UserName }}/runcalc-bot/aiogram_bot.py
 WorkingDirectory=/home/{{ UserName }}/runcalc-bot
 Restart=always
