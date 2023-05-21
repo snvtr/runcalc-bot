@@ -4,10 +4,10 @@ After=multi-user.target
 Wants=multi-user.target
 
 [Service]
-User={{ UserName }}
-EnvironmentFile=/home/{{ UserName }}/runcalc-bot.env
-ExecStart=/home/{{ UserName }}/runcalc-bot/aiogram_bot.py
-WorkingDirectory=/home/{{ UserName }}/runcalc-bot
+User=ubuntu
+EnvironmentFile=/home/ubuntu/runcalc-bot.env
+ExecStart=/home/ubuntu/runcalc-bot/aiogram_bot.py
+WorkingDirectory=/home/ubuntu/runcalc-bot
 Restart=always
 RestartSec=10
 TimeoutStopSec=90
