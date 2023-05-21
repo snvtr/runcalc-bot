@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import logging
 #import asyncio
 #from types import NoneType
